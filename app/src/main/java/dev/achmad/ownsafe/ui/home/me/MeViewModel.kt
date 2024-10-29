@@ -9,9 +9,7 @@ import dev.achmad.data.api.stats.StatsDataSource
 import dev.achmad.data.entity.Stats
 import dev.achmad.ownsafe.ApplicationPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,8 +29,7 @@ class MeViewModel @Inject constructor(
 
     val appTheme = applicationPreferences
         .appTheme()
-        .changes()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AppTheme.SYSTEM)
+        .stateIn(viewModelScope)
 
     private val _state = MutableStateFlow(MeState())
     val state = _state.asStateFlow()
@@ -41,13 +38,20 @@ class MeViewModel @Inject constructor(
         setFirstLoad: Boolean = false,
         onError: (errorMessage: String?) -> Unit = {},
     ) = viewModelScope.launch {
-        _state.update { it.copy(statsLoading = true, statsError = false, statsFirstLoad = setFirstLoad) }
-        when(val result = statsDataSource.getLatestStats()) {
+        _state.update {
+            it.copy(
+                statsLoading = true,
+                statsError = false,
+                statsFirstLoad = setFirstLoad
+            )
+        }
+        when (val result = statsDataSource.getLatestStats()) {
             is APICallResult.Error -> {
                 result.error.printStackTrace()
                 _state.update { it.copy(statsLoading = false, statsError = true) }
                 onError(result.error.message)
             }
+
             is APICallResult.Success -> {
                 val data = result.data.firstOrNull()?.data
                 data?.let { notNullData ->

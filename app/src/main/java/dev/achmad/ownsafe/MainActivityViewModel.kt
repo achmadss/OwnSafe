@@ -3,7 +3,6 @@ package dev.achmad.ownsafe
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.achmad.core.AppTheme
 import dev.achmad.core.network.APICallResult
 import dev.achmad.core.network.NetworkPreferences
 import dev.achmad.core.util.logcat
@@ -11,9 +10,7 @@ import dev.achmad.data.api.user.UpdateUserRequestBody
 import dev.achmad.data.api.user.UserDataSource
 import dev.achmad.data.entity.User
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,18 +32,15 @@ class MainActivityViewModel @Inject constructor(
 
     val appTheme = applicationPreferences
         .appTheme()
-        .changes()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, AppTheme.SYSTEM)
+        .stateIn(viewModelScope)
 
     val dynamicColor = applicationPreferences
         .dynamicColor()
-        .changes()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+        .stateIn(viewModelScope)
 
     val cookies = networkPreferences
         .cookies()
-        .changes()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+        .stateIn(viewModelScope)
 
     fun getUser(
         onError: (errorMessage: String?) -> Unit = {},
