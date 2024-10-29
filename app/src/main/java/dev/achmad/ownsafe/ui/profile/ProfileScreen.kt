@@ -120,10 +120,7 @@ fun NavGraphBuilder.profileDestination(
                     topBar = {
                         TopAppBar(
                             title = {
-                                Text(
-                                    text = "Detail Profile",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                                Text(text = "Detail Profile")
                             },
                             navigationIcon = {
                                 IconButton(onClick = onBack) {

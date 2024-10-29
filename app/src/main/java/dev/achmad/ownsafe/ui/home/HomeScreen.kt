@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -65,11 +66,16 @@ val menus = listOf(
 fun NavGraphBuilder.homeDestination(
     onGetUser: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToStatistics: () -> Unit,
+    onNavigateToDataAndStorage: () -> Unit,
+    onNavigateToAppearance: () -> Unit,
 ) {
     composable<Home> { backStackEntry ->
         val tabNavController = rememberNavController()
         val snackbarHostState = remember { SnackbarHostState() }
         val mainState by LocalMainState.current.collectAsState()
+        val viewModel = hiltViewModel<HomeViewModel>()
+        val alwaysShowNavLabels by viewModel.alwaysShowNavLabels.collectAsState()
 
         LaunchedEffect(Unit) {
             if (mainState.user == null) {
@@ -115,7 +121,9 @@ fun NavGraphBuilder.homeDestination(
                                     Icon(imageVector = menu.icon, contentDescription = menu.text)
                                 }
                             },
-                            label = { Text(text = menu.text) }
+                            label = if (alwaysShowNavLabels) {
+                                { Text(text = menu.text) }
+                            } else null
                         )
                     }
                 }
@@ -136,7 +144,10 @@ fun NavGraphBuilder.homeDestination(
                 filesDestination()
                 shortUrlDestination()
                 meDestination(
-                    onNavigateToProfile = onNavigateToProfile
+                    onNavigateToProfile = onNavigateToProfile,
+                    onNavigateToStatistics = onNavigateToStatistics,
+                    onNavigateToDataAndStorage = onNavigateToDataAndStorage,
+                    onNavigateToAppearance = onNavigateToAppearance,
                 )
             }
         }

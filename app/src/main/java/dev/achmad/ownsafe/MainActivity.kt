@@ -34,6 +34,10 @@ import dev.achmad.ownsafe.ui.login.Login
 import dev.achmad.ownsafe.ui.login.loginDestination
 import dev.achmad.ownsafe.ui.profile.Profile
 import dev.achmad.ownsafe.ui.profile.profileDestination
+import dev.achmad.ownsafe.ui.settings.appearance.Appearance
+import dev.achmad.ownsafe.ui.settings.appearance.appearanceDestination
+import dev.achmad.ownsafe.ui.settings.statistics.Statistics
+import dev.achmad.ownsafe.ui.settings.statistics.statisticsDestination
 import dev.achmad.ownsafe.ui.splash.Splash
 import dev.achmad.ownsafe.ui.splash.splashDestination
 import dev.achmad.ownsafe.ui.theme.DarkColorScheme
@@ -122,7 +126,16 @@ class MainActivity : ComponentActivity() {
                                 onGetUser = { viewModel.getUser() },
                                 onNavigateToProfile = {
                                     navController.navigate(Profile)
-                                }
+                                },
+                                onNavigateToStatistics = {
+                                    navController.navigate(Statistics)
+                                },
+                                onNavigateToDataAndStorage = {
+                                    // TODO
+                                },
+                                onNavigateToAppearance = {
+                                    navController.navigate(Appearance)
+                                },
                             )
                             profileDestination(
                                 onLogout = { navController.navigateAndPop(Login, Home) },
@@ -133,6 +146,12 @@ class MainActivity : ComponentActivity() {
                                         context.toast(message)
                                     }
                                 },
+                                onBack = { navController.navigateUp() }
+                            )
+                            statisticsDestination(
+                                onBack = { navController.navigateUp() }
+                            )
+                            appearanceDestination(
                                 onBack = { navController.navigateUp() }
                             )
                         }

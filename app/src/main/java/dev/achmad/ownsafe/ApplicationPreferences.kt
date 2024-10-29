@@ -11,6 +11,7 @@ class ApplicationPreferences(
     private val prefix: String = APP_PREF
 
     fun appTheme() = preferenceStore.getEnum(prefix.plus("app_theme"), AppTheme.SYSTEM)
-    fun dynamicColor() = preferenceStore.getBoolean(prefix.plus("dynamic_color"), true)
+    fun dynamicColors() = preferenceStore.getBoolean(prefix.plus("dynamic_colors"), true)
+    fun alwaysShowNavLabels() = preferenceStore.getBoolean(prefix.plus("always_show_nav_labels"), true)
 
 }

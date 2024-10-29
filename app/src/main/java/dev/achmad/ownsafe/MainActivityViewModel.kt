@@ -35,7 +35,7 @@ class MainActivityViewModel @Inject constructor(
         .stateIn(viewModelScope)
 
     val dynamicColor = applicationPreferences
-        .dynamicColor()
+        .dynamicColors()
         .stateIn(viewModelScope)
 
     val cookies = networkPreferences
