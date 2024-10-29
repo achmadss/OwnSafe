@@ -10,11 +10,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
-import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import dev.achmad.data.entity.Stats
 import dev.achmad.ownsafe.common.extension.toast
 import kotlinx.serialization.Serializable
 
@@ -105,28 +106,7 @@ fun NavGraphBuilder.statisticsDestination(
             ) {
                 StatsSection(
                     loading = state.statsLoading,
-                    media = when {
-                        state.statsLoading -> "--"
-                        state.statsError -> "--"
-                        else -> {
-                            state.stats.mediaCount().toString()
-                        }
-                    },
-                    files = when {
-                        state.statsLoading -> "--"
-                        state.statsError -> "--"
-                        else -> state.stats.filesCount().toString()
-                    },
-                    storage = when {
-                        state.statsLoading -> "--"
-                        state.statsError -> "--"
-                        else -> state.stats.humanReadableSize
-                    },
-                    views = when {
-                        state.statsLoading -> "--"
-                        state.statsError -> "--"
-                        else -> state.stats.totalViews.toString()
-                    },
+                    stats = state.stats
                 )
             }
         }
@@ -138,42 +118,45 @@ fun NavGraphBuilder.statisticsDestination(
 @Composable
 private fun StatsSection(
     loading: Boolean = false,
-    media: String = "--",
-    files: String = "--",
-    storage: String = "--",
-    views: String = "--",
+    stats: Stats,
 ) {
     val fontColor =
         if (loading) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         else MaterialTheme.colorScheme.onSurface
+    val items = listOf(
+        Triple(
+            Icons.Outlined.PhotoLibrary,
+            "Media",
+            stats.mediaCount().toString(),
+        ),
+        Triple(
+            Icons.AutoMirrored.Outlined.InsertDriveFile,
+            "Files",
+            stats.filesCount().toString(),
+        ),
+        Triple(
+            Icons.Default.Storage,
+            "Storage",
+            stats.humanReadableSize,
+        ),
+        Triple(
+            Icons.Default.Visibility,
+            "Views",
+            stats.totalViews.toString(),
+        )
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        StatsItem(
-            icon = Icons.Default.PhotoLibrary,
-            title = "Media",
-            value = media,
-            color = fontColor,
-        )
-        StatsItem(
-            icon = Icons.AutoMirrored.Filled.InsertDriveFile,
-            title = "Files",
-            value = files,
-            color = fontColor,
-        )
-        StatsItem(
-            icon = Icons.Default.Storage,
-            title = "Storage",
-            value = storage,
-            color = fontColor,
-        )
-        StatsItem(
-            icon = Icons.Default.Visibility,
-            title = "Views",
-            value = views,
-            color = fontColor,
-        )
+        items.forEach {
+            StatsItem(
+                icon = it.first,
+                title = it.second,
+                value = it.third,
+                color = fontColor
+            )
+        }
     }
 }
 
