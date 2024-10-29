@@ -26,7 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import dev.achmad.core.AppTheme
-import dev.achmad.core.network.NetworkPreferences
 import dev.achmad.ownsafe.common.extension.navigateAndPop
 import dev.achmad.ownsafe.common.extension.toast
 import dev.achmad.ownsafe.ui.home.Home
@@ -45,7 +44,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
 import soup.compose.material.motion.animation.rememberSlideDistance
-import javax.inject.Inject
 
 val LocalDarkTheme = compositionLocalOf { false }
 val LocalColorScheme = compositionLocalOf { LightColorScheme }
