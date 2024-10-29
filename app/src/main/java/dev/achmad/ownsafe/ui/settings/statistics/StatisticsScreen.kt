@@ -120,31 +120,17 @@ private fun StatsSection(
     loading: Boolean = false,
     stats: Stats,
 ) {
-    val fontColor =
-        if (loading) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        else MaterialTheme.colorScheme.onSurface
+    val fontColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (loading) 0.38f else 1f)
+
     val items = listOf(
-        Triple(
-            Icons.Outlined.PhotoLibrary,
-            "Media",
-            stats.mediaCount().toString(),
-        ),
-        Triple(
-            Icons.AutoMirrored.Outlined.InsertDriveFile,
-            "Files",
-            stats.filesCount().toString(),
-        ),
-        Triple(
-            Icons.Default.Storage,
-            "Storage",
-            stats.humanReadableSize,
-        ),
-        Triple(
-            Icons.Default.Visibility,
-            "Views",
-            stats.totalViews.toString(),
-        )
-    )
+        Icons.Outlined.PhotoLibrary to "Media" to stats.mediaCount().toString(),
+        Icons.AutoMirrored.Outlined.InsertDriveFile to "Files" to stats.filesCount().toString(),
+        Icons.Default.Storage to "Storage" to stats.humanReadableSize,
+        Icons.Default.Visibility to "Views" to stats.totalViews.toString()
+    ).map { (iconTitle, value) ->
+        Triple(iconTitle.first, iconTitle.second, if (loading) "--" else value)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
