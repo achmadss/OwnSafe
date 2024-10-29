@@ -31,13 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.achmad.ownsafe.LocalMainState
+import dev.achmad.data.entity.User
+import dev.achmad.ownsafe.MainState
 import dev.achmad.ownsafe.common.components.Base64Image
 import dev.achmad.ownsafe.common.extension.noRippleClickable
+import dev.achmad.ownsafe.ui.theme.LocalMainViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -50,41 +52,56 @@ fun NavGraphBuilder.meDestination(
     onNavigateToAppearance: () -> Unit,
 ) {
     composable<Me> {
-        val viewModel = hiltViewModel<MeViewModel>()
-        val mainState by LocalMainState.current.collectAsState()
+        val mainState by LocalMainViewModel.current.state.collectAsState()
+        MeScreen(
+            mainState = mainState,
+            onNavigateToProfile = onNavigateToProfile,
+            onNavigateToStatistics = onNavigateToStatistics,
+            onNavigateToDataAndStorage = onNavigateToDataAndStorage,
+            onNavigateToAppearance = onNavigateToAppearance
+        )
+    }
+}
 
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            mainState.user?.let { user ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .align(Alignment.Center),
-                ) {
-                    ProfileSection(
-                        base64String = user.avatar,
-                        username = user.username,
-                        onClickProfile = onNavigateToProfile
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    SettingsItem(
-                        icon = Icons.Default.QueryStats,
-                        title = "Statistics",
-                        onClick = onNavigateToStatistics
-                    )
-                    SettingsItem(
-                        icon = Icons.Default.Storage,
-                        title = "Data and storage",
-                        onClick = onNavigateToDataAndStorage
-                    )
-                    SettingsItem(
-                        icon = Icons.Outlined.Palette,
-                        title = "Appearance",
-                        onClick = onNavigateToAppearance
-                    )
-                }
+@Composable
+private fun MeScreen(
+    mainState: MainState = MainState(),
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToStatistics: () -> Unit = {},
+    onNavigateToDataAndStorage: () -> Unit = {},
+    onNavigateToAppearance: () -> Unit = {},
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        mainState.user?.let { user ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .align(Alignment.Center),
+            ) {
+                ProfileSection(
+                    base64String = user.avatar,
+                    username = user.username,
+                    onClickProfile = onNavigateToProfile
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsItem(
+                    icon = Icons.Default.QueryStats,
+                    title = "Statistics",
+                    onClick = onNavigateToStatistics
+                )
+                SettingsItem(
+                    icon = Icons.Default.Storage,
+                    title = "Data and storage",
+                    onClick = onNavigateToDataAndStorage
+                )
+                SettingsItem(
+                    icon = Icons.Outlined.Palette,
+                    title = "Appearance",
+                    onClick = onNavigateToAppearance
+                )
             }
         }
     }
@@ -159,4 +176,14 @@ private fun ProfileSection(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewMeScreen() {
+    MeScreen(
+        mainState = MainState(
+            user = User.dummyUser()
+        )
+    )
 }

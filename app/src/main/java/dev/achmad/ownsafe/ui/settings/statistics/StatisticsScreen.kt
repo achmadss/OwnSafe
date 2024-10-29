@@ -45,77 +45,82 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Statistics
 
-@OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.statisticsDestination(
     onBack: () -> Unit,
 ) {
     composable<Statistics> {
-        val viewModel = hiltViewModel<StatisticsViewModel>()
-        val state by viewModel.state.collectAsState()
-        val context = LocalContext.current
-
-        LaunchedEffect(Unit) {
-            if (state.statsFirstLoad) {
-                viewModel.getLatestStats(
-                    setFirstLoad = false,
-                    onError = { context.toast(it) }
-                )
-            }
-        }
-
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(text = "Statistics")
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                viewModel.getLatestStats(
-                                    onError = { context.toast(it) }
-                                )
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = null,
-                                tint = if (!state.statsLoading) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                },
-                            )
-                        }
-                    }
-                )
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
-            ) {
-                StatsSection(
-                    loading = state.statsLoading,
-                    stats = state.stats
-                )
-            }
-        }
-
+        StatisticsScreen(onBack = onBack)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StatisticsScreen(
+    onBack: () -> Unit,
+) {
+    val viewModel = hiltViewModel<StatisticsViewModel>()
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        if (state.statsFirstLoad) {
+            viewModel.getLatestStats(
+                setFirstLoad = false,
+                onError = { context.toast(it) }
+            )
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "Statistics")
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            viewModel.getLatestStats(
+                                onError = { context.toast(it) }
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null,
+                            tint = if (!state.statsLoading) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            },
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+        ) {
+            StatsSection(
+                loading = state.statsLoading,
+                stats = state.stats
+            )
+        }
+    }
+}
 
 @Composable
 private fun StatsSection(

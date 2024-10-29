@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,15 +47,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import dev.achmad.ownsafe.LocalMainState
 import dev.achmad.ownsafe.common.components.Base64Image
 import dev.achmad.ownsafe.common.components.LoadingBlock
+import dev.achmad.ownsafe.ui.theme.LocalMainViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
 object Profile
 
-@OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.profileDestination(
     onLogout: () -> Unit,
     onRefresh: () -> Unit,
@@ -62,168 +62,184 @@ fun NavGraphBuilder.profileDestination(
     onBack: () -> Unit,
 ) {
     composable<Profile> {
-        val viewModel = hiltViewModel<ProfileViewModel>()
-        val mainState by LocalMainState.current.collectAsState()
-        val user = mainState.user
-        val userLoading = mainState.userLoading
-        val focusManager = LocalFocusManager.current
+        ProfileScreen(
+            onLogout = onLogout,
+            onRefresh = onRefresh,
+            onSaveProfile = onSaveProfile,
+            onBack = onBack
+        )
+    }
+}
 
-        BackHandler { onBack() }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfileScreen(
+    onLogout: () -> Unit,
+    onRefresh: () -> Unit,
+    onSaveProfile: (String, String?) -> Unit,
+    onBack: () -> Unit,
+) {
+    val viewModel = hiltViewModel<ProfileViewModel>()
+    val mainState by LocalMainViewModel.current.state.collectAsState()
+    val user = mainState.user
+    val userLoading = mainState.userLoading
+    val focusManager = LocalFocusManager.current
 
-        Box(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            if (user != null) {
-                var username by remember { mutableStateOf(user.username) }
-                var password by remember { mutableStateOf("") }
-                var passwordVisible by remember { mutableStateOf(false) }
-                var usernameError by remember { mutableStateOf(false) }
-                var showLogoutDialog by remember { mutableStateOf(false) }
+    BackHandler { onBack() }
 
-                fun validateSaveProfile() {
-                    focusManager.clearFocus()
-                    if (username.isEmpty()) usernameError = true
-                    if (usernameError) return
-                    onSaveProfile(username, password.ifEmpty { null })
-                }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        if (user != null) {
+            var username by remember { mutableStateOf(user.username) }
+            var password by remember { mutableStateOf("") }
+            var passwordVisible by remember { mutableStateOf(false) }
+            var usernameError by remember { mutableStateOf(false) }
+            var showLogoutDialog by remember { mutableStateOf(false) }
 
-                if (showLogoutDialog) {
-                    AlertDialog(
-                        title = {
-                            Text(text = "Logout")
-                        },
-                        text = {
-                            Text(text = "Are you sure?")
-                        },
-                        onDismissRequest = { showLogoutDialog = false },
-                        dismissButton = {
-                            TextButton(onClick = { showLogoutDialog = false }) {
-                                Text(text = "Cancel")
+            fun validateSaveProfile() {
+                focusManager.clearFocus()
+                if (username.isEmpty()) usernameError = true
+                if (usernameError) return
+                onSaveProfile(username, password.ifEmpty { null })
+            }
+
+            if (showLogoutDialog) {
+                AlertDialog(
+                    title = {
+                        Text(text = "Logout")
+                    },
+                    text = {
+                        Text(text = "Are you sure?")
+                    },
+                    onDismissRequest = { showLogoutDialog = false },
+                    dismissButton = {
+                        TextButton(onClick = { showLogoutDialog = false }) {
+                            Text(text = "Cancel")
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLogoutDialog = false
+                                viewModel.logout()
+                                onLogout()
                             }
+                        ) {
+                            Text(text = "Confirm")
+                        }
+                    }
+                )
+            }
+
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(text = "Detail Profile")
                         },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    showLogoutDialog = false
-                                    viewModel.logout()
-                                    onLogout()
-                                }
-                            ) {
-                                Text(text = "Confirm")
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                    contentDescription = null
+                                )
                             }
                         }
                     )
                 }
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Base64Image(
+                        modifier = Modifier
+                            .size(128.dp)
+                            .clip(CircleShape),
+                        base64String = user.avatar
+                    )
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text(text = "Detail Profile")
+                    Column {
+                        OutlinedTextField(
+                            label = {
+                                Text(text = "Username")
                             },
-                            navigationIcon = {
-                                IconButton(onClick = onBack) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                        contentDescription = null
-                                    )
+                            value = username,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
+                            isError = usernameError,
+                            supportingText = {
+                                if (usernameError) {
+                                    Text(text = "Username cannot be empty!")
                                 }
+                            },
+                            onValueChange = {
+                                username = it
+                                usernameError = false
+                            }
+                        )
+                        OutlinedTextField(
+                            label = {
+                                Text(text = "Password")
+                            },
+                            supportingText = {
+                                Text(text = "Leave blank to keep your old password")
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            value = password,
+                            trailingIcon = {
+                                val icon =
+                                    if (!passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                                IconToggleButton(
+                                    checked = passwordVisible,
+                                    onCheckedChange = { passwordVisible = !passwordVisible }) {
+                                    Icon(imageVector = icon, contentDescription = null)
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(
+                                onDone = { validateSaveProfile() }
+                            ),
+                            onValueChange = {
+                                password = it
                             }
                         )
                     }
-                ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .padding(top = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    Button(
+                        modifier = Modifier.width(OutlinedTextFieldDefaults.MinWidth),
+                        onClick = { validateSaveProfile() }
                     ) {
-                        Base64Image(
-                            modifier = Modifier
-                                .size(128.dp)
-                                .clip(CircleShape),
-                            base64String = user.avatar
-                        )
-
-                        Column {
-                            OutlinedTextField(
-                                label = {
-                                    Text(text = "Username")
-                                },
-                                value = username,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                                keyboardActions = KeyboardActions(
-                                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                                ),
-                                isError = usernameError,
-                                supportingText = {
-                                    if (usernameError) {
-                                        Text(text = "Username cannot be empty!")
-                                    }
-                                },
-                                onValueChange = {
-                                    username = it
-                                    usernameError = false
-                                }
-                            )
-                            OutlinedTextField(
-                                label = {
-                                    Text(text = "Password")
-                                },
-                                supportingText = {
-                                    Text(text = "Leave blank to keep your old password")
-                                },
-                                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                                value = password,
-                                trailingIcon = {
-                                    val icon =
-                                        if (!passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                                    IconToggleButton(
-                                        checked = passwordVisible,
-                                        onCheckedChange = { passwordVisible = !passwordVisible }) {
-                                        Icon(imageVector = icon, contentDescription = null)
-                                    }
-                                },
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(
-                                    onDone = { validateSaveProfile() }
-                                ),
-                                onValueChange = {
-                                    password = it
-                                }
-                            )
-                        }
-                        Button(
-                            modifier = Modifier.width(OutlinedTextFieldDefaults.MinWidth),
-                            onClick = { validateSaveProfile() }
-                        ) {
-                            Text(text = "Save")
-                        }
-                        OutlinedButton(
-                            modifier = Modifier.width(OutlinedTextFieldDefaults.MinWidth),
-                            onClick = { showLogoutDialog = true },
-                        ) {
-                            Text(text = "Logout", color = MaterialTheme.colorScheme.onBackground)
-                        }
+                        Text(text = "Save")
                     }
-                }
-            } else if (!userLoading) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(text = "Something wrong happened")
-                    TextButton(onClick = onRefresh) {
-                        Text(text = "Retry")
+                    OutlinedButton(
+                        modifier = Modifier.width(OutlinedTextFieldDefaults.MinWidth),
+                        onClick = { showLogoutDialog = true },
+                    ) {
+                        Text(text = "Logout", color = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             }
-            if (userLoading) {
-                LoadingBlock()
+        } else if (!userLoading) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(text = "Something wrong happened")
+                TextButton(onClick = onRefresh) {
+                    Text(text = "Retry")
+                }
             }
+        }
+        if (userLoading) {
+            LoadingBlock()
         }
     }
 }

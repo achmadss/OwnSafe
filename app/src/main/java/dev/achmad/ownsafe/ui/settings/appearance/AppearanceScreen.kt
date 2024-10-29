@@ -17,6 +17,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -33,85 +34,94 @@ import java.util.Locale
 @Serializable
 object Appearance
 
-@OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.appearanceDestination(
     onBack: () -> Unit,
 ) {
     composable<Appearance> {
-        val viewModel = hiltViewModel<AppearanceViewModel>()
-        val appTheme by viewModel.appTheme.collectAsState()
-        val dynamicColors by viewModel.dynamicColors.collectAsState()
-        val alwaysShowNavLabels by viewModel.alwaysShowNavLabels.collectAsState()
+        AppearanceScreen(onBack = onBack)
+    }
+}
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(text = "Appearance") },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppearanceScreen(
+    onBack: () -> Unit,
+) {
+    val viewModel = hiltViewModel<AppearanceViewModel>()
+    val appTheme by viewModel.appTheme.collectAsState()
+    val dynamicColors by viewModel.dynamicColors.collectAsState()
+    val alwaysShowNavLabels by viewModel.alwaysShowNavLabels.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Appearance") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SettingsSection(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Theme",
+            ) {
+                MultiChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    AppTheme.entries.toTypedArray().onEachIndexed { index, theme ->
+                        SegmentedButton(
+                            checked = appTheme == theme,
+                            onCheckedChange = {
+                                viewModel.updateTheme(theme)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = AppTheme.entries.size
+                            )
+                        ) {
+                            Text(
+                                text = theme.name.lowercase().replaceFirstChar {
+                                    if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
+                                }
                             )
                         }
                     }
+                }
+                SettingsToggleItem(
+                    title = "Enable dynamic colors",
+                    checked = dynamicColors,
+                    onToggle = {
+                        viewModel.updateDynamicColors(it)
+                    }
                 )
             }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            SettingsSection(
+                modifier = Modifier.fillMaxWidth(),
+                title = "Navbar"
             ) {
-                SettingsSection(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = "Theme",
-                ) {
-                    MultiChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                    ) {
-                        AppTheme.entries.toTypedArray().onEachIndexed { index, theme ->
-                            SegmentedButton(
-                                checked = appTheme == theme,
-                                onCheckedChange = {
-                                    viewModel.updateTheme(theme)
-                                },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = AppTheme.entries.size
-                                )
-                            ) {
-                                Text(
-                                    text = theme.name.lowercase().replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
-                                    }
-                                )
-                            }
-                        }
+                SettingsToggleItem(
+                    title = "Always show labels",
+                    checked = alwaysShowNavLabels,
+                    onToggle = {
+                        viewModel.updateAlwaysShowLabels(it)
                     }
-                    SettingsToggleItem(
-                        title = "Enable dynamic colors",
-                        checked = dynamicColors,
-                        onToggle = {
-                            viewModel.updateDynamicColors(it)
-                        }
-                    )
-                }
-                SettingsSection(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = "Navbar"
-                ) {
-                    SettingsToggleItem(
-                        title = "Always show labels",
-                        checked = alwaysShowNavLabels,
-                        onToggle = {
-                            viewModel.updateAlwaysShowLabels(it)
-                        }
-                    )
-                }
+                )
             }
         }
     }

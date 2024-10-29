@@ -16,13 +16,18 @@ object ShortURL
 
 fun NavGraphBuilder.shortUrlDestination() {
     composable<ShortURL> {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(
-                modifier = Modifier.align(Alignment.Center),
-                text = "Short URL Screen"
-            )
-        }
+        ShortURLScreen()
+    }
+}
+
+@Composable
+private fun ShortURLScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = "Short URL Screen"
+        )
     }
 }

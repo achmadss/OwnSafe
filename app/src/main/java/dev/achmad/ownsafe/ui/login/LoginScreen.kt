@@ -58,12 +58,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.achmad.core.OAuthType
-import dev.achmad.ownsafe.LocalDarkTheme
 import dev.achmad.ownsafe.R
 import dev.achmad.ownsafe.common.components.LoadingBlock
 import dev.achmad.ownsafe.common.components.rememberResourceBitmapPainter
@@ -76,159 +76,206 @@ import soup.compose.material.motion.animation.rememberSlideDistance
 @Serializable
 object Login
 
-@OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.loginDestination(
     onLogin: () -> Unit,
 ) {
     composable<Login> {
         val viewModel = hiltViewModel<LoginViewModel>()
+        val defaultLoadingTitleWebView = "Loading..."
         val context = LocalContext.current
         val oauthModel by viewModel.oauthModel.collectAsState()
         val showWebView by viewModel.showWebView.collectAsState()
         var pageProgress by remember { mutableIntStateOf(0) }
-        var webViewTitle by remember { mutableStateOf("Loading...") }
+        var webViewTitle by remember { mutableStateOf(defaultLoadingTitleWebView) }
         val showLoading by viewModel.loading.collectAsState()
-        var isRegister by rememberSaveable { mutableStateOf(false) }
-        val slideDistance = rememberSlideDistance()
+        var showRegister by rememberSaveable { mutableStateOf(false) }
 
         BackHandler(showWebView) { viewModel.showWebView(false) }
-        BackHandler(isRegister) { isRegister = false }
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "OwnSafe",
-                    style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                AnimatedContent(
-                    targetState = isRegister,
-                    transitionSpec = {
-                        materialSharedAxisX(
-                            slideDistance = slideDistance,
-                            forward = !isRegister
-                        )
-                    },
-                    label = ""
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (it) {
-                            RegisterContent(
-                                onRegister = { username, password ->
-                                    viewModel.register(username, password) { errorMessage ->
-                                        if (errorMessage == null) {
-                                            onLogin()
-                                            return@register
-                                        }
-                                        context.toast(errorMessage)
-                                    }
-                                },
-                                onBack = { isRegister = false }
-                            )
-                        } else {
-                            LoginContent(
-                                onLogin = { username, password ->
-                                    viewModel.login(username, password) { errorMessage ->
-                                        if (errorMessage == null) {
-                                            onLogin()
-                                            return@login
-                                        }
-                                        context.toast(errorMessage)
-                                    }
-                                },
-                                onOAuth = {
-                                    viewModel.updateOAuth(it)
-                                    viewModel.showWebView(true)
-                                },
-                                onRegister = { isRegister = true }
-                            )
-                        }
+        BackHandler(showRegister) { showRegister = false }
+
+        LoginScreen(
+            host = viewModel.host.get(),
+            oauthModel = oauthModel,
+            showWebView = showWebView,
+            pageProgress = pageProgress,
+            webViewTitle = webViewTitle,
+            showLoading = showLoading,
+            showRegister = showRegister,
+            onLogin = { username, password ->
+                viewModel.login(username, password) { errorMessage ->
+                    if (errorMessage == null) {
+                        onLogin()
+                        return@login
                     }
+                    context.toast(errorMessage)
                 }
-            }
+            },
+            onRegister = { username, password ->
+                viewModel.register(username, password) { errorMessage ->
+                    if (errorMessage == null) {
+                        onLogin()
+                        return@register
+                    }
+                    context.toast(errorMessage)
+                }
+            },
+            onOAuth = {
+                viewModel.updateOAuth(it)
+                webViewTitle = oauthModel?.url ?: defaultLoadingTitleWebView
+            },
+            onShowWebView = { viewModel.showWebView(it) },
+            onConfirmLoginOAuth = {
+                viewModel.confirmLoginOauth(
+                    code = it,
+                    onError = { context.toast(it) },
+                    onSuccess = onLogin
+                )
+            },
+            onDenyOAuth = { context.toast(it) },
+            onShowRegister = { showRegister = it },
+            onProgressChanged = { pageProgress = it },
+            onWebViewTitleChanged = { webViewTitle = it }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LoginScreen(
+    host: String = "",
+    oauthModel: OAuthModel? = null,
+    showWebView: Boolean = false,
+    pageProgress: Int = 0,
+    webViewTitle: String = "",
+    showLoading: Boolean = false,
+    showRegister: Boolean = false,
+    onLogin: (String, String) -> Unit = { _, _ -> },
+    onRegister: (String, String) -> Unit = { _, _ -> },
+    onOAuth: (OAuthType) -> Unit = {},
+    onShowWebView: (Boolean) -> Unit = {},
+    onConfirmLoginOAuth: (String) -> Unit = {},
+    onDenyOAuth: (String) -> Unit = {},
+    onShowRegister: (Boolean) -> Unit = {},
+    onProgressChanged: (Int) -> Unit = {},
+    onWebViewTitleChanged: (String) -> Unit = {},
+) {
+    val slideDistance = rememberSlideDistance()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "OwnSafe",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             AnimatedContent(
-                modifier = Modifier.fillMaxSize(),
-                targetState = showWebView,
+                targetState = showRegister,
                 transitionSpec = {
-                    materialSharedAxisZ(forward = showWebView)
+                    materialSharedAxisX(
+                        slideDistance = slideDistance,
+                        forward = !showRegister
+                    )
                 },
                 label = ""
             ) {
-                if (it) {
-                    Scaffold(
-                        modifier = Modifier.fillMaxSize(),
-                        topBar = {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                TopAppBar(
-                                    title = {
-                                        Text(
-                                            modifier = Modifier.padding(end = 8.dp),
-                                            text = webViewTitle,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    },
-                                    actions = {
-                                        IconButton(
-                                            onClick = { viewModel.showWebView(false) }
-                                        ) {
-                                            Icon(
-                                                modifier = Modifier.padding(horizontal = 8.dp),
-                                                imageVector = Icons.Filled.Close,
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                )
-                                if (pageProgress < 100) {
-                                    Box(
-                                        modifier = Modifier
-                                            .height(4.dp)
-                                            .fillMaxWidth(pageProgress.div(100f))
-                                            .background(Color.Green)
-                                    )
-                                }
-                            }
-                        }
-                    ) { innerPadding ->
-                        oauthModel?.url?.let {
-                            OAuthWebView(
-                                modifier = Modifier.padding(innerPadding),
-                                host = viewModel.host.get(),
-                                url = it,
-                                onProgressChanged = { pageProgress = it },
-                                onPageFinished = { view, url ->
-                                    if (view != null && url != null) {
-                                        webViewTitle = view.title ?: "Loading..."
-                                    }
-                                },
-                                onCodeReceived = {
-                                    viewModel.showWebView(false)
-                                    viewModel.confirmLoginOauth(
-                                        code = it,
-                                        onError = { context.toast(it) },
-                                        onSuccess = onLogin
-                                    )
-                                },
-                                onDeny = {
-                                    viewModel.showWebView(false)
-                                    context.toast(it)
-                                }
-                            )
-                        }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (it) {
+                        RegisterContent(
+                            onRegister = onRegister,
+                            onBack = { onShowRegister(false) }
+                        )
+                    } else {
+                        LoginContent(
+                            onLogin = onLogin,
+                            onOAuth = {
+                                onOAuth(it)
+                                onShowWebView(true)
+                            },
+                            onRegister = { onShowRegister(true) }
+                        )
                     }
                 }
             }
-            if (showLoading) {
-                LoadingBlock()
+        }
+        AnimatedContent(
+            modifier = Modifier.fillMaxSize(),
+            targetState = showWebView,
+            transitionSpec = {
+                materialSharedAxisZ(forward = showWebView)
+            },
+            label = ""
+        ) {
+            if (it) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            TopAppBar(
+                                title = {
+                                    Text(
+                                        modifier = Modifier.padding(end = 8.dp),
+                                        text = webViewTitle,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                actions = {
+                                    IconButton(
+                                        onClick = { onShowWebView(false) }
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.padding(horizontal = 8.dp),
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            )
+                            if (pageProgress < 100) {
+                                Box(
+                                    modifier = Modifier
+                                        .height(4.dp)
+                                        .fillMaxWidth(pageProgress.div(100f))
+                                        .background(Color.Green)
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
+                    oauthModel?.url?.let {
+                        OAuthWebView(
+                            modifier = Modifier.padding(innerPadding),
+                            host = host,
+                            url = it,
+                            onProgressChanged = { onProgressChanged(it) },
+                            onPageFinished = { view, url ->
+                                if (view != null && url != null) {
+                                    onWebViewTitleChanged(view.title ?: "")
+                                }
+                            },
+                            onCodeReceived = {
+                                onShowWebView(false)
+                                onConfirmLoginOAuth(it)
+                            },
+                            onDeny = {
+                                onShowWebView(false)
+                                onDenyOAuth(it)
+                            }
+                        )
+                    }
+                }
             }
+        }
+        if (showLoading) {
+            LoadingBlock()
         }
     }
 }
@@ -324,12 +371,9 @@ private fun LoginContent(
             modifier = Modifier.weight(1f),
             onClick = { onOAuth(OAuthType.DISCORD) }
         ) {
-            val iconRes = if (!LocalDarkTheme.current) {
-                R.drawable.discord_black
-            } else R.drawable.discord_white
             Icon(
                 modifier = Modifier.size(16.dp),
-                painter = rememberResourceBitmapPainter(id = iconRes),
+                painter = rememberResourceBitmapPainter(id = R.drawable.discord_black),
                 contentDescription = null
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -382,13 +426,12 @@ private fun RegisterContent(
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var usernameError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
-    var confirmPasswordError by remember { mutableStateOf(false) }
 
     fun validateRegister() {
         focusManager.clearFocus()
         if (username.isEmpty()) usernameError = true
         if (password.isEmpty()) passwordError = true
-        if (usernameError || passwordError || confirmPasswordError) return
+        if (usernameError || passwordError || password != confirmPassword) return
         onRegister(username, password)
     }
 
@@ -490,4 +533,10 @@ private fun RegisterContent(
     ) {
         Text(text = "REGISTER")
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewLoginScreen() {
+    LoginScreen()
 }

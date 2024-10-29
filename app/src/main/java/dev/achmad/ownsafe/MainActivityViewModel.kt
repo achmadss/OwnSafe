@@ -34,7 +34,7 @@ class MainActivityViewModel @Inject constructor(
         .appTheme()
         .stateIn(viewModelScope)
 
-    val dynamicColor = applicationPreferences
+    val dynamicColors = applicationPreferences
         .dynamicColors()
         .stateIn(viewModelScope)
 

@@ -17,4 +17,13 @@ data class User(
         @SerializedName("oauth_provider")
         val provider: OAuthType
     )
+
+    companion object {
+        fun dummyUser() = User(
+            id = 1,
+            username = "dummy",
+            avatar = "",
+            oauth = emptyList(),
+        )
+    }
 }
