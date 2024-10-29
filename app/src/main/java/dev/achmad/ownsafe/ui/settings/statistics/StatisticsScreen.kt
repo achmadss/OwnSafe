@@ -88,9 +88,11 @@ fun NavGraphBuilder.statisticsDestination(
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = null,
-                                tint = if (!state.statsLoading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                ),
+                                tint = if (!state.statsLoading) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                },
                             )
                         }
                     }
