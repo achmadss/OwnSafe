@@ -54,12 +54,6 @@ val LocalMainState = compositionLocalOf { MutableStateFlow(MainState()).asStateF
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var applicationPreferences: ApplicationPreferences
-
-    @Inject
-    lateinit var networkPreferences: NetworkPreferences
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
