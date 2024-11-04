@@ -9,7 +9,7 @@ data class User(
     @SerializedName("username")
     val username: String,
     @SerializedName("avatar")
-    val avatar: String,
+    val avatar: String?,
     @SerializedName("oauth")
     val oauth: List<OAuth>,
 ) {

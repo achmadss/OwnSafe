@@ -11,17 +11,17 @@ import androidx.navigation.compose.NavHost
 import dagger.hilt.android.AndroidEntryPoint
 import dev.achmad.ownsafe.common.extension.navigateAndPop
 import dev.achmad.ownsafe.common.extension.toast
-import dev.achmad.ownsafe.ui.home.Home
+import dev.achmad.ownsafe.ui.home.HomeRoute
 import dev.achmad.ownsafe.ui.home.homeDestination
-import dev.achmad.ownsafe.ui.login.Login
+import dev.achmad.ownsafe.ui.login.LoginRoute
 import dev.achmad.ownsafe.ui.login.loginDestination
-import dev.achmad.ownsafe.ui.profile.Profile
+import dev.achmad.ownsafe.ui.profile.ProfileRoute
 import dev.achmad.ownsafe.ui.profile.profileDestination
-import dev.achmad.ownsafe.ui.settings.appearance.Appearance
+import dev.achmad.ownsafe.ui.settings.appearance.AppearanceRoute
 import dev.achmad.ownsafe.ui.settings.appearance.appearanceDestination
-import dev.achmad.ownsafe.ui.settings.statistics.Statistics
+import dev.achmad.ownsafe.ui.settings.statistics.StatisticsRoute
 import dev.achmad.ownsafe.ui.settings.statistics.statisticsDestination
-import dev.achmad.ownsafe.ui.splash.Splash
+import dev.achmad.ownsafe.ui.splash.SplashRoute
 import dev.achmad.ownsafe.ui.splash.splashDestination
 import dev.achmad.ownsafe.ui.theme.LocalMainViewModel
 import dev.achmad.ownsafe.ui.theme.LocalNavController
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = Splash,
+                    startDestination = SplashRoute,
                     enterTransition = { materialSharedAxisXIn(true, slideDistance) },
                     exitTransition = { materialSharedAxisXOut(true, slideDistance) },
                     popEnterTransition = { materialSharedAxisXIn(false, slideDistance) },
@@ -55,32 +55,32 @@ class MainActivity : ComponentActivity() {
                     splashDestination(
                         onNavigate = {
                             if (cookies.isEmpty()) {
-                                navController.navigateAndPop(Login, Splash)
+                                navController.navigateAndPop(LoginRoute, SplashRoute)
                                 return@splashDestination
                             }
-                            navController.navigateAndPop(Home, Splash)
+                            navController.navigateAndPop(HomeRoute, SplashRoute)
                         }
                     )
                     loginDestination(
-                        onLogin = { navController.navigateAndPop(Home, Login) }
+                        onLogin = { navController.navigateAndPop(HomeRoute, LoginRoute) }
                     )
                     homeDestination(
                         onGetUser = { mainViewModel.getUser() },
                         onNavigateToProfile = {
-                            navController.navigate(Profile)
+                            navController.navigate(ProfileRoute)
                         },
                         onNavigateToStatistics = {
-                            navController.navigate(Statistics)
+                            navController.navigate(StatisticsRoute)
                         },
                         onNavigateToDataAndStorage = {
                             // TODO
                         },
                         onNavigateToAppearance = {
-                            navController.navigate(Appearance)
+                            navController.navigate(AppearanceRoute)
                         },
                     )
                     profileDestination(
-                        onLogout = { navController.navigateAndPop(Login, Home) },
+                        onLogout = { navController.navigateAndPop(LoginRoute, HomeRoute) },
                         onRefresh = { mainViewModel.getUser() },
                         onSaveProfile = { username, password ->
                             mainViewModel.saveProfile(username, password) {

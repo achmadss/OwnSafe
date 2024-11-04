@@ -53,7 +53,7 @@ import dev.achmad.ownsafe.ui.theme.LocalMainViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Profile
+object ProfileRoute
 
 fun NavGraphBuilder.profileDestination(
     onLogout: () -> Unit,
@@ -61,7 +61,7 @@ fun NavGraphBuilder.profileDestination(
     onSaveProfile: (String, String?) -> Unit,
     onBack: () -> Unit,
 ) {
-    composable<Profile> {
+    composable<ProfileRoute> {
         ProfileScreen(
             onLogout = onLogout,
             onRefresh = onRefresh,

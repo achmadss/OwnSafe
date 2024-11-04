@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DriveFolderUpload
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -40,19 +41,19 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.achmad.ownsafe.MainState
 import dev.achmad.ownsafe.common.components.Base64Image
-import dev.achmad.ownsafe.ui.home.files.Files
+import dev.achmad.ownsafe.ui.home.files.FilesRoute
 import dev.achmad.ownsafe.ui.home.files.filesDestination
-import dev.achmad.ownsafe.ui.home.me.Me
+import dev.achmad.ownsafe.ui.home.me.MeRoute
 import dev.achmad.ownsafe.ui.home.me.meDestination
-import dev.achmad.ownsafe.ui.home.media.Media
+import dev.achmad.ownsafe.ui.home.media.MediaRoute
 import dev.achmad.ownsafe.ui.home.media.mediaDestination
-import dev.achmad.ownsafe.ui.home.shorturl.ShortURL
+import dev.achmad.ownsafe.ui.home.shorturl.ShortURLRoute
 import dev.achmad.ownsafe.ui.home.shorturl.shortUrlDestination
 import dev.achmad.ownsafe.ui.theme.LocalMainViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Home
+object HomeRoute
 
 data class HomeScreenMenu<T : Any>(
     val text: String,
@@ -61,10 +62,10 @@ data class HomeScreenMenu<T : Any>(
 )
 
 val menus = listOf(
-    HomeScreenMenu("Media", Icons.Default.PhotoLibrary, Media),
-    HomeScreenMenu("Files", Icons.Default.DriveFolderUpload, Files),
-    HomeScreenMenu("Short URLs", Icons.Default.Link, ShortURL),
-    HomeScreenMenu("Me", Icons.Default.AccountCircle, Me),
+    HomeScreenMenu("Media", Icons.Default.PhotoLibrary, MediaRoute),
+    HomeScreenMenu("Files", Icons.Default.DriveFolderUpload, FilesRoute),
+    HomeScreenMenu("Short URLs", Icons.Default.Link, ShortURLRoute),
+    HomeScreenMenu("Me", Icons.Default.AccountCircle, MeRoute),
 )
 
 fun NavGraphBuilder.homeDestination(
@@ -74,7 +75,7 @@ fun NavGraphBuilder.homeDestination(
     onNavigateToDataAndStorage: () -> Unit,
     onNavigateToAppearance: () -> Unit,
 ) {
-    composable<Home> { backStackEntry ->
+    composable<HomeRoute> { backStackEntry ->
         val tabNavController = rememberNavController()
         val snackbarHostState = remember { SnackbarHostState() }
         val mainState by LocalMainViewModel.current.state.collectAsState()
@@ -138,12 +139,24 @@ private fun HomeScreen(
                             }
                         },
                         icon = {
-                            if (menu.route is Me && mainState.user != null) {
+                            if (menu.route is MeRoute && mainState.user != null) {
                                 Base64Image(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clip(CircleShape),
-                                    base64String = mainState.user.avatar
+                                    base64String = mainState.user.avatar,
+                                    loading = {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    error = {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = null,
+                                        )
+                                    }
                                 )
                             } else {
                                 Icon(imageVector = menu.icon, contentDescription = menu.text)
@@ -160,7 +173,7 @@ private fun HomeScreen(
         NavHost(
             modifier = Modifier.padding(innerPadding),
             navController = tabNavController,
-            startDestination = Media,
+            startDestination = MediaRoute,
             enterTransition = {
                 fadeIn(animationSpec = tween(200))
             },

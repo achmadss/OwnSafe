@@ -14,10 +14,10 @@ import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Files
+object FilesRoute
 
 fun NavGraphBuilder.filesDestination() {
-    composable<Files> {
+    composable<FilesRoute> {
         FilesScreen()
     }
 }

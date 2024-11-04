@@ -2,6 +2,7 @@ package dev.achmad.ownsafe.ui.login
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,16 +71,17 @@ import dev.achmad.ownsafe.common.components.rememberResourceBitmapPainter
 import dev.achmad.ownsafe.common.extension.toast
 import kotlinx.serialization.Serializable
 import soup.compose.material.motion.animation.materialSharedAxisX
-import soup.compose.material.motion.animation.materialSharedAxisZ
+import soup.compose.material.motion.animation.materialSharedAxisXIn
+import soup.compose.material.motion.animation.materialSharedAxisXOut
 import soup.compose.material.motion.animation.rememberSlideDistance
 
 @Serializable
-object Login
+object LoginRoute
 
 fun NavGraphBuilder.loginDestination(
     onLogin: () -> Unit,
 ) {
-    composable<Login> {
+    composable<LoginRoute> {
         val viewModel = hiltViewModel<LoginViewModel>()
         val defaultLoadingTitleWebView = "Loading..."
         val context = LocalContext.current
@@ -205,72 +207,69 @@ private fun LoginScreen(
                 }
             }
         }
-        AnimatedContent(
+        AnimatedVisibility(
             modifier = Modifier.fillMaxSize(),
-            targetState = showWebView,
-            transitionSpec = {
-                materialSharedAxisZ(forward = showWebView)
-            },
+            visible = showWebView,
+            enter = materialSharedAxisXIn(showWebView, slideDistance),
+            exit = materialSharedAxisXOut(showWebView, slideDistance),
             label = ""
         ) {
-            if (it) {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            TopAppBar(
-                                title = {
-                                    Text(
-                                        modifier = Modifier.padding(end = 8.dp),
-                                        text = webViewTitle,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                },
-                                actions = {
-                                    IconButton(
-                                        onClick = { onShowWebView(false) }
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.padding(horizontal = 8.dp),
-                                            imageVector = Icons.Filled.Close,
-                                            contentDescription = null
-                                        )
-                                    }
-                                }
-                            )
-                            if (pageProgress < 100) {
-                                Box(
-                                    modifier = Modifier
-                                        .height(4.dp)
-                                        .fillMaxWidth(pageProgress.div(100f))
-                                        .background(Color.Green)
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    text = webViewTitle,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
-                            }
-                        }
-                    }
-                ) { innerPadding ->
-                    oauthModel?.url?.let {
-                        OAuthWebView(
-                            modifier = Modifier.padding(innerPadding),
-                            host = host,
-                            url = it,
-                            onProgressChanged = { onProgressChanged(it) },
-                            onPageFinished = { view, url ->
-                                if (view != null && url != null) {
-                                    onWebViewTitleChanged(view.title ?: "")
+                            },
+                            actions = {
+                                IconButton(
+                                    onClick = { onShowWebView(false) }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.padding(horizontal = 8.dp),
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = null
+                                    )
                                 }
-                            },
-                            onCodeReceived = {
-                                onShowWebView(false)
-                                onConfirmLoginOAuth(it)
-                            },
-                            onDeny = {
-                                onShowWebView(false)
-                                onDenyOAuth(it)
                             }
                         )
+                        if (pageProgress < 100) {
+                            Box(
+                                modifier = Modifier
+                                    .height(4.dp)
+                                    .fillMaxWidth(pageProgress.div(100f))
+                                    .background(Color.Green)
+                            )
+                        }
                     }
+                }
+            ) { innerPadding ->
+                oauthModel?.url?.let {
+                    OAuthWebView(
+                        modifier = Modifier.padding(innerPadding),
+                        host = host,
+                        url = it,
+                        onProgressChanged = { onProgressChanged(it) },
+                        onPageFinished = { view, url ->
+                            if (view != null && url != null) {
+                                onWebViewTitleChanged(view.title ?: "")
+                            }
+                        },
+                        onCodeReceived = {
+                            onShowWebView(false)
+                            onConfirmLoginOAuth(it)
+                        },
+                        onDeny = {
+                            onShowWebView(false)
+                            onDenyOAuth(it)
+                        }
+                    )
                 }
             }
         }

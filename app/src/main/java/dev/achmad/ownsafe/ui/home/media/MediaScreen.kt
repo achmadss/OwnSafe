@@ -11,10 +11,10 @@ import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Media
+object MediaRoute
 
 fun NavGraphBuilder.mediaDestination() {
-    composable<Media> {
+    composable<MediaRoute> {
         MediaScreen()
     }
 }

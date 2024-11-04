@@ -32,12 +32,12 @@ import kotlinx.serialization.Serializable
 import java.util.Locale
 
 @Serializable
-object Appearance
+object AppearanceRoute
 
 fun NavGraphBuilder.appearanceDestination(
     onBack: () -> Unit,
 ) {
-    composable<Appearance> {
+    composable<AppearanceRoute> {
         AppearanceScreen(onBack = onBack)
     }
 }

@@ -1,11 +1,11 @@
 package dev.achmad.ownsafe.common.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter.State
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageScope
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -13,14 +13,20 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @Composable
 fun Base64Image(
     modifier: Modifier = Modifier,
-    base64String: String,
+    base64String: String?,
+    loading: @Composable (SubcomposeAsyncImageScope.(State.Loading) -> Unit)? = null,
+    success: @Composable (SubcomposeAsyncImageScope.(State.Success) -> Unit)? = {
+        Image(painter = it.painter, contentDescription = null)
+    },
+    error: @Composable (SubcomposeAsyncImageScope.(State.Error) -> Unit)? = null,
 ) {
-    AsyncImage(
+    SubcomposeAsyncImage(
         modifier = modifier,
-        model = if (base64String.isNotEmpty())
+        model = if (!base64String.isNullOrEmpty())
             Base64.decode(base64String.substringAfter("base64,")) else null,
         contentDescription = null,
-        placeholder = rememberVectorPainter(image = Icons.Outlined.Person),
-        error = rememberVectorPainter(image = Icons.Outlined.Person)
+        loading = loading,
+        error = error,
+        success = success
     )
 }

@@ -43,12 +43,12 @@ import dev.achmad.ownsafe.common.extension.toast
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Statistics
+object StatisticsRoute
 
 fun NavGraphBuilder.statisticsDestination(
     onBack: () -> Unit,
 ) {
-    composable<Statistics> {
+    composable<StatisticsRoute> {
         StatisticsScreen(onBack = onBack)
     }
 }

@@ -22,12 +22,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Splash
+object SplashRoute
 
 fun NavGraphBuilder.splashDestination(
     onNavigate: () -> Unit,
 ) {
-    composable<Splash> {
+    composable<SplashRoute> {
         SplashScreen(onNavigate = onNavigate)
     }
 }

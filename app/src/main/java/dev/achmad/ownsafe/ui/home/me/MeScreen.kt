@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +44,7 @@ import dev.achmad.ownsafe.ui.theme.LocalMainViewModel
 import kotlinx.serialization.Serializable
 
 @Serializable
-object Me
+object MeRoute
 
 fun NavGraphBuilder.meDestination(
     onNavigateToProfile: () -> Unit,
@@ -51,7 +52,7 @@ fun NavGraphBuilder.meDestination(
     onNavigateToDataAndStorage: () -> Unit,
     onNavigateToAppearance: () -> Unit,
 ) {
-    composable<Me> {
+    composable<MeRoute> {
         val mainState by LocalMainViewModel.current.state.collectAsState()
         MeScreen(
             mainState = mainState,
@@ -134,7 +135,7 @@ private fun SettingsItem(
 
 @Composable
 private fun ProfileSection(
-    base64String: String,
+    base64String: String?,
     username: String,
     onClickProfile: () -> Unit,
 ) {
@@ -149,7 +150,19 @@ private fun ProfileSection(
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape),
-            base64String = base64String
+            base64String = base64String,
+            loading = {
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = null,
+                )
+            },
+            error = {
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = null,
+                )
+            }
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
